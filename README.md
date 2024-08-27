@@ -1,8 +1,14 @@
 # 1oT sysadmin homework
 
-1) Add another HTTP endpoint that serves a file from an S3 bucket. Create the S3 bucket with Terraform. You can use the [provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) directly or use `modules/terraform-aws-s3-bucket`.
+The aim of this homework is to further develop an already working system by adding new features. It tests your ability to understand how the technology stack is integrated, while not requiring you to go through the steep learning curve.
 
-2) Fill `private_subnets` variable with values given the VPC configuration above in the file. There should be three blocks.
+The entire system is run by Docker Compose. Localstack emulates an AWS environment. There is a `tfrunner` container for you to work with Terraform. Terraform manages the AWS resources. Terraform is a configuration/programming language to ease complicated setups. Terraform backend is stored to an existing S3 bucket in Localstack.
+
+--
+
+1) Add another HTTP endpoint that serves a file from an S3 bucket. Create the S3 bucket with Terraform. You can use the [provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) directly or use `terraform/modules/terraform-aws-s3-bucket`.
+
+2) Fill `private_subnets` variable with values given the VPC configuration above in the `terraform/local.auto.tfvars` file. Add three blocks like in `public_subnets`.
 
 There are two options for the 3rd task, choose one. 
 
@@ -13,11 +19,11 @@ Finally, commit (git) your work to the same repository and send it back via publ
 
 ## Prepare the environment
 
-First, build Docker images locally and run detached
+Before starting the homework, first, build Docker images locally and run detached
 
     docker-compose up --build --detach
 
-Then, enter the worker container
+Then, enter the worker (runner) container
 
     docker exec -it tfrunner-cnt bash -l
 
@@ -52,11 +58,11 @@ Apply the plan
 
     terraform apply ".terraform/tf-plan.out"
 
-You should see an URL to test the ApiGW endpoint
+You should see an URL from Terraform console output to test the ApiGW endpoint
 
     curl -X GET http://localstack:4566/restapis/d6ww3oe8ml/test/_user_request_/ -vv
 
-And the API will reply `Cheers from AWS Lambda!!`.
+Run the cURL and the API will reply `Cheers from AWS Lambda!!`.
 
 Now you can proceed to the task.
 
@@ -64,8 +70,8 @@ Now you can proceed to the task.
 
 There are two containers running in Compose:
 - Localstack emulates the AWS endpoints. When you destroy the localstack container, all AWS resources are lost.
-- tfrunner is an Ubuntu machine to contain the work environment, so you would only need Docker to run the project.
-- Terraform state file is in `1ot-platform-state-local`. 
+- tfrunner is an Ubuntu container to encapsulate the work environment, so you would only need Docker to run the system.
+- Terraform state file is in `1ot-platform-state-local` S3 bucket. 
 - You can also use awscli on tfrunner for testing, but the homework is designed so it wouldn't be necessary.
 
 ### Helpers
