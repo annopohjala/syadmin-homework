@@ -1,0 +1,41 @@
+version: "3.8"
+
+#networks:
+#  default:
+#    name: localstack-net
+
+services:
+  tfrunner:
+    build:
+      context: ./tfrunner/
+      dockerfile: ./Dockerfile
+    container_name: tfrunner-cnt
+    tty: true
+    volumes:
+      - type: bind
+        source: ./terraform
+        target: /mnt/terraform
+  localstack:
+    image: localstack/localstack:3.6.0
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+      - "127.0.0.1:4571:4571"
+    environment:
+      - SERVICES=s3,iam,apigateway,lambda,ec2
+      - LAMBDA_EXECUTOR=docker_reuse
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEBUG=1
+#      - DATA_DIR=/tmp/localstack/data
+#      - LAMBDA_DOCKER_NETWORK=localstack-net
+      - AWS_ACCESS_KEY_ID=myrootaccesskeyid
+      - AWS_SECRET_ACCESS_KEY=myrootsecretaccesskey
+    volumes:
+#      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack/aws:/etc/localstack/init/ready.d"
+    privileged: true
+
+#volumes:
+#    localstack_data:
+

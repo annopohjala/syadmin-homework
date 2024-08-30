@@ -16,26 +16,24 @@ services:
         source: ./terraform
         target: /mnt/terraform
   localstack:
-    image: localstack/localstack:3.6.0
-    ports:
-      - "127.0.0.1:4566:4566"            # LocalStack Gateway
-      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
-      - "127.0.0.1:4571:4571"
+    image: localstack/localstack
     environment:
-      - SERVICES=s3,iam,apigateway,lambda,ec2
-      - LAMBDA_EXECUTOR=docker_reuse
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - DEBUG=1
-#      - DATA_DIR=/tmp/localstack/data
-#      - LAMBDA_DOCKER_NETWORK=localstack-net
-      - AWS_ACCESS_KEY_ID=myrootaccesskeyid
-      - AWS_SECRET_ACCESS_KEY=myrootsecretaccesskey
-    volumes:
-#      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./localstack/aws:/etc/localstack/init/ready.d"
+      - DOCKER_HOST=tcp://dind:2375
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    depends_on:
+      - dind
+
+  dind:
+    image: docker:20.10.7-dind
     privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - dind-storage:/var/lib/docker
+    ports:
+      - "2375:2375"
 
-#volumes:
-#    localstack_data:
-
+volumes:
+  dind-storage:
